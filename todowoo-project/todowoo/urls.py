@@ -22,7 +22,9 @@ urlpatterns = [
 
     # Auth
 
-    path('signup/', views.signupuser, name='signupuser'),
+    path('signup/', views.sign_up_user, name='sign_up_user'),
 
     # Todos
+
+    path('current/', views.current_todos, name='current_todos'),
 ]
