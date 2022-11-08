@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
+from .forms import TodoForm
+from .models import Todo
 
 
 def home(request):
@@ -27,8 +29,24 @@ def sign_up_user(request):
                           {'form': UserCreationForm(), 'error': 'Пароли не совпадают'})
 
 
+def create_todo(request):
+    if request.method == 'GET':
+        return render(request, 'todo/create_todo.html', {'form': TodoForm()})
+    else:
+        try:
+            form = TodoForm(request.POST)
+            new_todo = form.save(commit=False)
+            new_todo.user = request.user
+            new_todo.save()
+            return redirect('current_todos')
+        except ValueError:
+            return render(request, 'todo/create_todo.html',
+                          {'form': TodoForm(), 'error': 'Длина введенного текста превышает разрешенное значение'})
+
+
 def current_todos(request):
-    return render(request, 'todo/current_todos.html')
+    todos = Todo.objects.all()
+    return render(request, 'todo/current_todos.html', {'todos': todos})
 
 
 def login_user(request):
