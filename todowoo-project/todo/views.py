@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -45,8 +45,23 @@ def create_todo(request):
 
 
 def current_todos(request):
-    todos = Todo.objects.all()
+    todos = Todo.objects.filter(user=request.user, date_completed__isnull=True)
     return render(request, 'todo/current_todos.html', {'todos': todos})
+
+
+def view_todo(request, todo_pk):
+    todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == 'GET':
+        form = TodoForm(instance=todo_object)
+        return render(request, 'todo/view_todo.html', {'todo': todo_object, 'form': form})
+    else:
+        try:
+            form = TodoForm(request.POST, instance=todo_object)
+            form.save()
+            return redirect('current_todos')
+        except ValueError:
+            return render(request, 'todo/view_todo.html',
+                          {'form': TodoForm(), 'error': 'Длина введенного текста превышает разрешенное значение'})
 
 
 def login_user(request):
