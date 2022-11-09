@@ -15,4 +15,14 @@
     <button type="submit">Сохранить</button>
 </form>
 
+<form method="POST" action="{% url 'complete_todo' todo.id %}">
+    {% csrf_token %}
+    <button type="submit">Выполнить</button>
+</form>
+
+<form method="POST" action="{% url 'delete_todo' todo.id %}">
+    {% csrf_token %}
+    <button type="submit">Удалить</button>
+</form>
+
 {% endblock %}

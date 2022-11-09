@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h2>Текущие задачи</h2>
+<h2>Выполненные задачи</h2>
 
 <ul>
     {% for todo in todos %}
@@ -16,6 +16,7 @@
             {% if todo.memo %}
             - {{ todo.memo }}
             {% endif %}
+            {{ todo.date_completed }}
         </a>
     </li>
     {% endfor %}

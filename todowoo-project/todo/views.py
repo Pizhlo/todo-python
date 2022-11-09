@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from .forms import TodoForm
 from .models import Todo
 
@@ -29,6 +31,28 @@ def sign_up_user(request):
                           {'form': UserCreationForm(), 'error': 'Пароли не совпадают'})
 
 
+def login_user(request):
+    if request.method == 'GET':
+        return render(request, 'todo/login_user.html', {'form': AuthenticationForm()})
+    else:
+        user = authenticate(request=request, username=request.POST['username'],
+                            password=request.POST['password'])
+        if user is None:
+            return render(request, 'todo/login_user.html',
+                          {'form': AuthenticationForm(), 'error': 'Пользователь не найден'})
+        else:
+            login(request, user)
+            return redirect('current_todos')
+
+
+@login_required
+def logout_user(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('home')
+
+
+@login_required
 def create_todo(request):
     if request.method == 'GET':
         return render(request, 'todo/create_todo.html', {'form': TodoForm()})
@@ -44,11 +68,13 @@ def create_todo(request):
                           {'form': TodoForm(), 'error': 'Длина введенного текста превышает разрешенное значение'})
 
 
+@login_required
 def current_todos(request):
     todos = Todo.objects.filter(user=request.user, date_completed__isnull=True)
     return render(request, 'todo/current_todos.html', {'todos': todos})
 
 
+@login_required
 def view_todo(request, todo_pk):
     todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'GET':
@@ -64,21 +90,24 @@ def view_todo(request, todo_pk):
                           {'form': TodoForm(), 'error': 'Длина введенного текста превышает разрешенное значение'})
 
 
-def login_user(request):
-    if request.method == 'GET':
-        return render(request, 'todo/login_user.html', {'form': AuthenticationForm()})
-    else:
-        user = authenticate(request=request, username=request.POST['username'],
-                            password=request.POST['password'])
-        if user is None:
-            return render(request, 'todo/login_user.html',
-                          {'form': AuthenticationForm(), 'error': 'Пользователь не найден'})
-        else:
-            login(request, user)
-            return redirect('current_todos')
-
-
-def logout_user(request):
+@login_required
+def complete_todo(request, todo_pk):
+    todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'POST':
-        logout(request)
-        return redirect('home')
+        todo_object.date_completed = timezone.now()
+        todo_object.save()
+        return redirect('current_todos')
+
+
+@login_required
+def delete_todo(request, todo_pk):
+    todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == 'POST':
+        todo_object.delete()
+        return redirect('current_todos')
+
+
+@login_required
+def completed_todos(request):
+    todos = Todo.objects.filter(user=request.user, date_completed__isnull=False).order_by('-date_completed')
+    return render(request, 'todo/completed_todos.html', {'todos': todos})
