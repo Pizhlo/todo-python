@@ -10,10 +10,12 @@ from .models import Todo
 
 
 def home(request):
+    """Главная страница сайта"""
     return render(request, 'todo/home.html')
 
 
 def sign_up_user(request):
+    """Страница регистрации пользователя"""
     if request.method == 'GET':
         return render(request, 'todo/sign_up_user.html', {'form': UserCreationForm()})
     else:
@@ -32,6 +34,7 @@ def sign_up_user(request):
 
 
 def login_user(request):
+    """Страница авторизации"""
     if request.method == 'GET':
         return render(request, 'todo/login_user.html', {'form': AuthenticationForm()})
     else:
@@ -47,6 +50,7 @@ def login_user(request):
 
 @login_required
 def logout_user(request):
+    """Функция выхода из сети пользователя"""
     if request.method == 'POST':
         logout(request)
         return redirect('home')
@@ -54,6 +58,7 @@ def logout_user(request):
 
 @login_required
 def create_todo(request):
+    """Функция создания новой задачи"""
     if request.method == 'GET':
         return render(request, 'todo/create_todo.html', {'form': TodoForm()})
     else:
@@ -70,12 +75,14 @@ def create_todo(request):
 
 @login_required
 def current_todos(request):
+    """Страница текущих задач"""
     todos = Todo.objects.filter(user=request.user, date_completed__isnull=True)
     return render(request, 'todo/current_todos.html', {'todos': todos})
 
 
 @login_required
 def view_todo(request, todo_pk):
+    """Страница отображения конкретной задачи"""
     todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'GET':
         form = TodoForm(instance=todo_object)
@@ -92,6 +99,7 @@ def view_todo(request, todo_pk):
 
 @login_required
 def complete_todo(request, todo_pk):
+    """Функция отметки 'выполнено' у задачи"""
     todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'POST':
         todo_object.date_completed = timezone.now()
@@ -101,6 +109,7 @@ def complete_todo(request, todo_pk):
 
 @login_required
 def delete_todo(request, todo_pk):
+    """Функция удаления задачи"""
     todo_object = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'POST':
         todo_object.delete()
@@ -109,5 +118,6 @@ def delete_todo(request, todo_pk):
 
 @login_required
 def completed_todos(request):
+    """Страница отображения всех выполненных задач"""
     todos = Todo.objects.filter(user=request.user, date_completed__isnull=False).order_by('-date_completed')
     return render(request, 'todo/completed_todos.html', {'todos': todos})

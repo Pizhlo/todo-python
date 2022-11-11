@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 
 class Todo(models.Model):
+    """Модель задачи, создаваемой пользователем"""
     title = models.CharField(max_length=100, verbose_name='Название')
     memo = models.TextField(blank=True, verbose_name='Описание')
     date_created = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
